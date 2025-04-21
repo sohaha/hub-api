@@ -10,6 +10,8 @@
 
 ## 使用
 
+下载 [https://github.com/sohaha/hub-api/releases](https://github.com/sohaha/hub-api/releases)
+
 和其他程序一样直接启动即可，如果配置文件不存在就会自动创建。
 
 ### 部署开机自动启动
