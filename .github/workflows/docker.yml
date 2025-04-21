@@ -1,9 +1,10 @@
 name: Docker image
+
 on:
   workflow_dispatch:
-  create:
+  push:
     tags:
-      - v*
+      - 'v*'
 
 permissions:
   contents: read
@@ -29,6 +30,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository_owner }}/${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

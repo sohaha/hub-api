@@ -22,6 +22,12 @@
 ./程序 install
 ```
 
+
+### Docker 启动
+```bash
+docker run -d --name hub-api -p 8181:8181 ghcr.io/sohaha/sohaha/hub-api:master
+```
+
 ## 配置
 
 配置分节点配置(provider.json)和程序配置(config.toml)
