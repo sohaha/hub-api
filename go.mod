@@ -1,6 +1,6 @@
 module app
 
-go 1.20
+go 1.23.0
 
 require (
 	github.com/sohaha/zlsgo v1.7.19-0.20250421041204-a1a46acddff2
