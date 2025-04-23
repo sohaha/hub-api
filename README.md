@@ -51,6 +51,13 @@ key = 'sk-sb123,sk-sb456'
 test_interval = 60000
 ```
 
+**如果希望只本地访问**
+
+```toml
+[base]
+port = "127.0.0.1:8181"
+```
+
 ### 节点配置
 provider.json
 
