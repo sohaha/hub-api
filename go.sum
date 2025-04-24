@@ -31,6 +31,8 @@ github.com/sagikazarmark/slog-shim v0.1.0 h1:diDBnUNK9N/354PgrxMywXnAwEr1QZcOr6g
 github.com/sagikazarmark/slog-shim v0.1.0/go.mod h1:SrcSrq8aKtyuqEI1uvTDTK1arOWRIczQRv+GVI1AkeQ=
 github.com/sohaha/zlsgo v1.7.19-0.20250421041204-a1a46acddff2 h1:0+VTeKJbRc1rYpt0lF+ODPDFeaIuqrpjW2CDDL6UaEc=
 github.com/sohaha/zlsgo v1.7.19-0.20250421041204-a1a46acddff2/go.mod h1:MGbu4/f0NIgts6UHKntPoONHMMgFUmJvqMUtQww18L8=
+github.com/sohaha/zlsgo v1.7.19-0.20250424050258-5a96f97f4b97 h1:EfnC8rsViIuH35kVu5kvjxhDvMVJrhSDlNE9ABahcAo=
+github.com/sohaha/zlsgo v1.7.19-0.20250424050258-5a96f97f4b97/go.mod h1:MGbu4/f0NIgts6UHKntPoONHMMgFUmJvqMUtQww18L8=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spf13/afero v1.11.0 h1:WJQKhtpdm3v2IzqG8VMqrr6Rf3UYpEF239Jy9wNepM8=
