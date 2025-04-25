@@ -89,7 +89,7 @@ Content-Type: application/json
 ```json
 {
     "节点名称": {
-        "base": "https://ai.deno.73zls.com/v1",
+        "base": "https://节点域名/v1",
         "models": ["gpt-4o-mini"],
         "weight": 10,
         "max": 100,
@@ -110,6 +110,11 @@ Content-Type: application/json
 支持的模型列表
 
 如果需要映射模型使用 Object : { "模型名称": "真实的模型名称" }
+```json
+{
+    "models": {"4o-mini": "gpt-4o-mini"},
+}
+```
 
 **weight**
 节点权重，数字越大权重越高

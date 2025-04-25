@@ -43,7 +43,7 @@ func New() (p *Module) {
 					zfile.WriteFile(providerFile, []byte(`{ 
     "Openai": {
         "base": "https://api.openai.com/v1",
-        "models2": {"4o-mini": "gpt-4o-mini"},
+        "models": {"4o-mini": "gpt-4o-mini"},
         "key": "sk-1,sk-2",
         "cooldown": 6000,
         "weight": 1,
