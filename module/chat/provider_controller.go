@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"maps"
 	"net/http"
 
 	"app/provider/openai"
@@ -8,6 +9,8 @@ import (
 	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zhttp"
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/zpool"
+	"github.com/sohaha/zlsgo/ztype"
 	"github.com/sohaha/zlsgo/zutil"
 )
 
@@ -41,15 +44,28 @@ func (h *Index) POSTProvider(c *znet.Context) error {
 		body = resp.Bytes()
 	}
 
-	pool, modelMaps, _, errs := ParseNode(body)
+	parseErrs := make(map[string]string, 0)
+
+	pool, modelMaps, _, errs := ParseNode(body, false)
 	if len(errs) > 0 {
-		c.ApiJSON(http.StatusBadRequest, "", errs)
+		parseErrs = errs
+	}
+
+	reservePool, reserveModelMaps, _, reserveErrs := ParseNode(body, true)
+	if len(reserveErrs) > 0 {
+		maps.Copy(parseErrs, reserveErrs)
+	}
+
+	if len(parseErrs) > 0 {
+		c.ApiJSON(http.StatusBadRequest, "", parseErrs)
 		return nil
 	}
 
 	h.mu.Lock()
 	h.pool = pool
 	h.modelMaps = modelMaps
+	h.reservePool = reservePool
+	h.reserveModelMaps = reserveModelMaps
 	h.mu.Unlock()
 	h.chatModels(c)
 
@@ -65,4 +81,29 @@ func (h *Index) GETTotal(c *znet.Context) any {
 		return true
 	})
 	return models
+}
+
+func (h *Index) GETNodes(c *znet.Context) ztype.Map {
+	r := h.mu.RLock()
+	pools := []*zpool.Balancer[openai.Openai]{h.pool, h.reservePool}
+	h.mu.RUnlock(r)
+
+	failedNodes := []string{}
+	nodes := []string{}
+	for i := range pools {
+		pools[i].WalkNodes(func(node openai.Openai, available bool) (normal bool) {
+			if !available {
+				failedNodes = append(failedNodes, node.Name())
+			} else {
+				nodes = append(nodes, node.Name())
+			}
+
+			return available
+		})
+	}
+
+	return ztype.Map{
+		"available": nodes,
+		"failed":    failedNodes,
+	}
 }

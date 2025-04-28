@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/sohaha/zlsgo"
+	"github.com/sohaha/zlsgo/zarray"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/zpool"
 	"github.com/sohaha/zlsgo/ztype"
@@ -51,4 +52,12 @@ func Test_loadNode(t *testing.T) {
 		return true, nil
 	})
 	tt.NoError(err, true)
+}
+
+func Test_Prve(t *testing.T) {
+	tt := zlsgo.NewTest(t)
+
+	tt.Log(zarray.Slice[string]("", ","))
+	tt.Log(zarray.Slice[string](",", ","))
+	tt.Log(zarray.Slice[string]("   ", ","))
 }

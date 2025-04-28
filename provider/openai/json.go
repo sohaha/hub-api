@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/sohaha/zlsgo/zarray"
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/zpool"
 	"github.com/sohaha/zlsgo/zreflect"
@@ -44,7 +45,7 @@ func ParseMap(name string, data ztype.Map, nodes *zpool.Balancer[Openai], models
 	apiurl := data.Get("apiurl")
 	cooldown := data.Get("cooldown").Int()
 	if cooldown == 0 {
-		cooldown = 6000
+		cooldown = 30000
 	}
 	weight := data.Get("weight").Int()
 	if weight == 0 {
@@ -64,39 +65,52 @@ func ParseMap(name string, data ztype.Map, nodes *zpool.Balancer[Openai], models
 			models[v] = v
 		}
 	}
+
 	for model := range models {
 		nodeName := fmt.Sprintf("%s:%s", strings.ReplaceAll(name, ":", "\\:"), model)
 		modelName := model
-		realModel := models.Get(model).String()
+		realModel := models.Get(model, true).String()
 		if realModel != "" {
 			modelName = realModel
 		}
 		if _, ok := (*modelsMap)[model]; !ok {
 			(*modelsMap)[model] = []string{}
 		}
-		(*modelsMap)[model] = append((*modelsMap)[model], nodeName)
 
-		nodes.Add(nodeName, New(
-			nodeName,
-			modelName,
-			agent.NewOpenAIProvider(func(oa *agent.OpenAIOptions) {
-				oa.Model = modelName
-				oa.APIKey = keys
-				if base != "" {
-					oa.BaseURL = base
-				}
-				if apiurl.Exists() {
-					oa.APIURL = apiurl.String()
-				}
-				if stream.Exists() {
-					oa.Stream = stream.Bool()
-				}
-			}),
-		), func(opts *zpool.BalancerNodeOptions) {
-			opts.Weight = uint64(weight)
-			opts.Cooldown = int64(cooldown)
-			opts.MaxConns = int64(maxConns)
+		apiKeys := zarray.Map(strings.Split(keys, ","), func(_ int, v string) string {
+			return strings.TrimSpace(v)
 		})
+
+		for i := range apiKeys {
+			name := nodeName
+			if i > 0 {
+				name = fmt.Sprintf("%s[%d]", nodeName, i)
+			}
+
+			(*modelsMap)[model] = append((*modelsMap)[model], name)
+
+			nodes.Add(name, New(
+				name,
+				modelName,
+				agent.NewOpenAIProvider(func(oa *agent.OpenAIOptions) {
+					oa.Model = modelName
+					oa.APIKey = apiKeys[i]
+					if base != "" {
+						oa.BaseURL = base
+					}
+					if apiurl.Exists() {
+						oa.APIURL = apiurl.String()
+					}
+					if stream.Exists() {
+						oa.Stream = stream.Bool()
+					}
+				}),
+			), func(opts *zpool.BalancerNodeOptions) {
+				opts.Weight = uint64(weight)
+				opts.Cooldown = int64(cooldown)
+				opts.MaxConns = int64(maxConns)
+			})
+		}
 	}
 	return
 }

@@ -29,10 +29,8 @@ github.com/sagikazarmark/locafero v0.4.0 h1:HApY1R9zGo4DBgr7dqsTH/JJxLTTsOt7u6ke
 github.com/sagikazarmark/locafero v0.4.0/go.mod h1:Pe1W6UlPYUk/+wc/6KFhbORCfqzgYEpgQ3O5fPuL3H4=
 github.com/sagikazarmark/slog-shim v0.1.0 h1:diDBnUNK9N/354PgrxMywXnAwEr1QZcOr6gto+ugjYE=
 github.com/sagikazarmark/slog-shim v0.1.0/go.mod h1:SrcSrq8aKtyuqEI1uvTDTK1arOWRIczQRv+GVI1AkeQ=
-github.com/sohaha/zlsgo v1.7.19-0.20250421041204-a1a46acddff2 h1:0+VTeKJbRc1rYpt0lF+ODPDFeaIuqrpjW2CDDL6UaEc=
-github.com/sohaha/zlsgo v1.7.19-0.20250421041204-a1a46acddff2/go.mod h1:MGbu4/f0NIgts6UHKntPoONHMMgFUmJvqMUtQww18L8=
-github.com/sohaha/zlsgo v1.7.19-0.20250424050258-5a96f97f4b97 h1:EfnC8rsViIuH35kVu5kvjxhDvMVJrhSDlNE9ABahcAo=
-github.com/sohaha/zlsgo v1.7.19-0.20250424050258-5a96f97f4b97/go.mod h1:MGbu4/f0NIgts6UHKntPoONHMMgFUmJvqMUtQww18L8=
+github.com/sohaha/zlsgo v1.7.19-0.20250426103038-665a0da11039 h1:/HkxHwDam94gkcwXgQIUXFlLqN76O4tBHHPmLSWlLJ8=
+github.com/sohaha/zlsgo v1.7.19-0.20250426103038-665a0da11039/go.mod h1:MGbu4/f0NIgts6UHKntPoONHMMgFUmJvqMUtQww18L8=
 github.com/sourcegraph/conc v0.3.0 h1:OQTbbt6P72L20UqAkXXuLOj79LfEanQ+YQFNpLA9ySo=
 github.com/sourcegraph/conc v0.3.0/go.mod h1:Sdozi7LEKbFPqYX2/J+iBAM6HpqSLTASQIKqDmF7Mt0=
 github.com/spf13/afero v1.11.0 h1:WJQKhtpdm3v2IzqG8VMqrr6Rf3UYpEF239Jy9wNepM8=
@@ -58,8 +56,8 @@ github.com/zlsgo/app_core v0.0.0-20250421042828-13546fac417f h1:8ZoXfSFTh+H4JDEy
 github.com/zlsgo/app_core v0.0.0-20250421042828-13546fac417f/go.mod h1:z8EXF9PG6cqZ8izy8IMmbAPvDN3D7FHb12eUkbbLYSY=
 github.com/zlsgo/conf v0.0.0-20250421042600-ef858c116f8e h1:HkbDrLmRESlgLUI95JZj/lYj9SRR6qhv/eR9M4oIQ/w=
 github.com/zlsgo/conf v0.0.0-20250421042600-ef858c116f8e/go.mod h1:C55LqcDMqfHqlmDZkkq21K9Do7GD3tZuPJC94XRzAUA=
-github.com/zlsgo/zllm v0.0.0-20250419031712-5ce6d2459105 h1:8FBftDu46h0hLEdZpfhOgGNqGjxDpeE5ZFm8XGiyM7Q=
-github.com/zlsgo/zllm v0.0.0-20250419031712-5ce6d2459105/go.mod h1:46WegQEE9oJrrXymFY8edQ5AggBbUV3oysbyCElX15Y=
+github.com/zlsgo/zllm v0.0.0-20250427094404-4531b63718ea h1:nuqhDztl/KWtWb7LeTMRCiDqOAXcr2vVKdFruIF+jEU=
+github.com/zlsgo/zllm v0.0.0-20250427094404-4531b63718ea/go.mod h1:GLKJNREMhJssTDSe3P3YbFK9cplIPX5SmJTciQbgQ+Q=
 go.uber.org/atomic v1.9.0 h1:ECmE8Bn/WFTYwEW/bpKD3M8VtR/zQVbavAoalC1PYyE=
 go.uber.org/atomic v1.9.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/multierr v1.9.0 h1:7fIwc/ZtS0q++VgcfqFDxSBZVv/Xo49/SYnDFupUwlI=

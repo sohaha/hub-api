@@ -8,7 +8,7 @@ import (
 	"github.com/sohaha/zlsgo/zpool"
 )
 
-func ParseNode(config []byte) (nodes *zpool.Balancer[openai.Openai], modelMaps map[string][]string, inlayErrors, loadErrors map[string]string) {
+func ParseNode(config []byte, fallback bool) (nodes *zpool.Balancer[openai.Openai], modelMaps map[string][]string, inlayErrors, loadErrors map[string]string) {
 	loadErrors = make(map[string]string)
 	inlayErrors = make(map[string]string)
 	modelMaps = make(map[string][]string, 0)
@@ -20,10 +20,14 @@ func ParseNode(config []byte) (nodes *zpool.Balancer[openai.Openai], modelMaps m
 
 	zjson.ParseBytes(config).ForEach(func(key *zjson.Res, value *zjson.Res) bool {
 		name := key.String()
-		err := openai.ParseMap(name, value.Map(), nodes, &modelMaps)
-		if err != nil {
-			loadErrors[name] = err.Error()
+		data := value.Map()
+		if fallback && data.Get("fallback").Bool() || !fallback && !data.Get("fallback").Bool() {
+			err := openai.ParseMap(name, data, nodes, &modelMaps)
+			if err != nil {
+				loadErrors[name] = err.Error()
+			}
 		}
+
 		return true
 	})
 

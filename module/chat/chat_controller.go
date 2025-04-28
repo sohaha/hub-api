@@ -10,6 +10,7 @@ import (
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
+	"github.com/sohaha/zlsgo/zpool"
 	"github.com/sohaha/zlsgo/zstring"
 	"github.com/sohaha/zlsgo/zutil"
 )
@@ -32,13 +33,15 @@ func (h *Index) chat(c *znet.Context, data []byte) (err error) {
 	defer h.mu.RUnlock(r)
 
 	var (
-		nodesKeys []string
-		lastErr   error
-		nodes     = h.pool
-		ctx       = c.Request.Context()
-		nodeName  = "unknown"
-		stream    = zjson.GetBytes(data, "stream").Bool()
-		model     = zjson.GetBytes(data, "model").String()
+		nodesKeys    []string
+		lastErr      error
+		nodes        = h.pool
+		reserveNodes = h.reservePool
+		ctx          = c.Request.Context()
+		pools        = map[string]*zpool.Balancer[openai.Openai]{"nodes": nodes, "reserveNodes": reserveNodes}
+		nodeName     = "unknown"
+		stream       = zjson.GetBytes(data, "stream").Bool()
+		model        = zjson.GetBytes(data, "model").String()
 	)
 
 	defer func() {
@@ -51,40 +54,76 @@ func (h *Index) chat(c *znet.Context, data []byte) (err error) {
 	}()
 
 	if model == "" {
-		err = nodes.Run(func(node openai.Openai) (normal bool, err error) {
+		for k := range pools {
 			if ctx.Err() != nil {
-				return true, ctx.Err()
+				continue
 			}
+			err = pools[k].Run(func(node openai.Openai) (normal bool, err error) {
+				if ctx.Err() != nil {
+					return true, ctx.Err()
+				}
 
-			defer func() {
-				lastErr = err
-			}()
+				defer func() {
+					lastErr = err
+				}()
 
-			nodeName = node.Name()
+				nodeName = node.Name()
 
-			zlog.Tips("Node", nodeName, "--", nodes.Keys())
-			normal, err = h.node(c, stream, node, data)
-			return
-		})
-	} else {
-		nodesKeys = h.modelMaps[model]
-		if len(nodesKeys) == 0 {
-			return zerror.InvalidInput.Text(fmt.Sprintf("model %s not supported", model))
+				zlog.Tips("Node", nodeName, "--", nodes.Keys())
+				normal, err = h.node(c, stream, node, data)
+				return
+			})
+			if err == nil {
+				break
+			}
 		}
-		err = nodes.RunByKeys(nodesKeys, func(node openai.Openai) (normal bool, err error) {
-			if ctx.Err() != nil {
-				return true, ctx.Err()
+	} else {
+		for k := range pools {
+			runModel := model
+		nn:
+			for {
+				pool := pools[k]
+				if k != "reserveNodes" {
+					nodesKeys = h.modelMaps[runModel]
+				} else {
+					nodesKeys = h.reserveModelMaps[runModel]
+				}
+
+				if len(nodesKeys) == 0 {
+					return zerror.InvalidInput.Text(fmt.Sprintf("%s model %s not supported", k, runModel))
+				}
+
+				err = pool.RunByKeys(nodesKeys, func(node openai.Openai) (normal bool, err error) {
+					if ctx.Err() != nil {
+						return true, ctx.Err()
+					}
+
+					defer func() {
+						lastErr = err
+					}()
+
+					nodeName = node.Name()
+					normal, err = h.node(c, stream, node, data)
+					if err == nil {
+						zlog.Tips("Node", nodeName, "--", nodesKeys)
+					} else {
+						zlog.Warn("Node", nodeName, err.Error(), "--", nodesKeys)
+					}
+					return
+				}, conf.Balancer)
+				if err == nil || len(conf.Fallback) == 0 {
+					break nn
+				}
+				var ok bool
+				runModel, ok = conf.Fallback[runModel]
+				if !ok {
+					break nn
+				}
 			}
-
-			defer func() {
-				lastErr = err
-			}()
-
-			nodeName = node.Name()
-			zlog.Tips("Node", nodeName, "--", nodesKeys)
-			normal, err = h.node(c, stream, node, data)
-			return
-		}, conf.Balancer)
+			if err == nil {
+				break
+			}
+		}
 	}
 
 	if lastErr != nil {

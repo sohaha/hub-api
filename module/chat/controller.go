@@ -21,11 +21,13 @@ import (
 )
 
 type Index struct {
-	pool      *zpool.Balancer[openai.Openai]
-	modelMaps map[string][]string
-	mu        *zsync.RBMutex
-	Path      string
-	total     *zarray.Maper[string, *zutil.Int64]
+	pool             *zpool.Balancer[openai.Openai]
+	reservePool      *zpool.Balancer[openai.Openai]
+	modelMaps        map[string][]string
+	reserveModelMaps map[string][]string
+	mu               *zsync.RBMutex
+	Path             string
+	total            *zarray.Maper[string, *zutil.Int64]
 }
 
 var _ = reflect.TypeOf(&Index{})
@@ -53,6 +55,7 @@ func authMiddleware() func(c *znet.Context) error {
 
 func (h *Index) Init(r *znet.Engine) error {
 	var inlayErrors map[string]string
+	var reservenlayErrors map[string]string
 
 	r.Use(authMiddleware())
 
@@ -61,24 +64,21 @@ func (h *Index) Init(r *znet.Engine) error {
 	_ = r.GETAndName("/models", h.chatModels, "/v1/models")
 
 	h.mu = zsync.NewRBMutex()
-	h.pool, h.modelMaps, inlayErrors, _ = ParseNode(nil)
+	h.pool, h.modelMaps, inlayErrors, _ = ParseNode(nil, false)
+	h.reservePool, h.reserveModelMaps, reservenlayErrors, _ = ParseNode(nil, true)
 	h.total = zarray.NewHashMap[string, *zutil.Int64]()
 
-	if len(inlayErrors) > 0 {
-		for name, err := range inlayErrors {
-			zlog.Error(name, err)
+	for _, v := range []map[string]string{inlayErrors, reservenlayErrors} {
+		if len(v) > 0 {
+			for name, err := range v {
+				zlog.Error(name, err)
+			}
 		}
 	}
 
 	go func() {
 		for {
-			testInterval := conf.TestInterval
-			if testInterval == 0 {
-				return
-			}
-			if testInterval < 5000 {
-				testInterval = 5000
-			}
+			testInterval := min(conf.TestInterval, 5000)
 			time.Sleep(time.Duration(testInterval) * time.Millisecond)
 			h.testNodes()
 		}
@@ -89,24 +89,26 @@ func (h *Index) Init(r *znet.Engine) error {
 
 func (h *Index) testNodes() {
 	r := h.mu.RLock()
-	pool := h.pool
+	pools := []*zpool.Balancer[openai.Openai]{h.pool, h.reservePool}
 	h.mu.RUnlock(r)
 
-	pool.WalkNodes(func(node openai.Openai, available bool) (normal bool) {
-		if available {
-			return true
-		}
+	for i := range pools {
+		pools[i].WalkNodes(func(node openai.Openai, available bool) (normal bool) {
+			if available {
+				return true
+			}
 
-		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-		defer cancel()
-		resp, err := node.Generate(ctx, []byte("写一个10个字的冷笑话"))
-		if err != nil {
-			zlog.Error("test node: ", node.Name(), " err: ", err)
-			return false
-		}
-		zlog.Info("test node: ", node.Name(), " resp: ", resp)
-		return true
-	})
+			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancel()
+			resp, err := node.Generate(ctx, []byte("写一个10个字的冷笑话"))
+			if err != nil {
+				zlog.Error("test node: ", node.Name(), " err: ", err)
+				return false
+			}
+			zlog.Info("test node: ", node.Name(), " resp: ", resp)
+			return true
+		})
+	}
 }
 
 func (h *Index) chatModels(c *znet.Context) {
@@ -126,13 +128,14 @@ func (h *Index) chatModels(c *znet.Context) {
 		return true
 	})
 
-	allModels := h.modelMaps
 	models := make([]string, 0, minLen)
-	for model, nodes := range allModels {
-		for _, node := range nodes {
-			if _, ok := availableNodes[node]; ok {
-				models = append(models, model)
-				break
+	for _, v := range []map[string][]string{h.modelMaps, h.reserveModelMaps} {
+		for model, nodes := range v {
+			for _, node := range nodes {
+				if _, ok := availableNodes[node]; ok {
+					models = append(models, model)
+					break
+				}
 			}
 		}
 	}

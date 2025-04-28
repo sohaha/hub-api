@@ -49,6 +49,11 @@ algorithm = 0
 key = 'sk-sb123,sk-sb456'
 # 内置定时重试失败节点
 test_interval = 60000
+# 后备模型，如果该模型失败会切换到后备模型
+[chat.fallback]
+'claude-3.7-sonnet' = 'o4-mini'
+'o4-mini' = 'deepseek-v3'
+
 ```
 
 默认是泛绑定，**如果希望只本地访问**
@@ -93,7 +98,8 @@ Content-Type: application/json
         "models": ["gpt-4o-mini"],
         "weight": 10,
         "max": 100,
-        "cooldown": 6000
+        "cooldown": 6000,
+        "fallback": false
     }
 }
 ```
@@ -129,6 +135,11 @@ Content-Type: application/json
 
 如果请求失败在指定时间段内不会再使用这个节点的模型
 
+**fallback**
+该节点是否后备节点
+
+只在全部节点都失败时候才会触发
+
 ## 内置接口
 
 ### 发起会话
@@ -142,3 +153,11 @@ GET /v1/models
 ### 查看模型请求次数
 
 GET /chat/total
+
+### 配置节点
+
+POST /chat/provider
+
+### 查看节点信息
+
+GET /chat/nodes

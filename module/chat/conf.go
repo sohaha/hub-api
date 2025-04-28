@@ -5,7 +5,6 @@ import (
 
 	"github.com/sohaha/zlsgo/zarray"
 	"github.com/sohaha/zlsgo/zdi"
-	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zpool"
 	"github.com/zlsgo/app_core/service"
 )
@@ -15,6 +14,7 @@ type Conf struct {
 	keyArr       []string               `z:"-"`
 	Balancer     zpool.BalancerStrategy `z:"algorithm"`
 	TestInterval int64                  `z:"test_interval"`
+	Fallback     map[string]string      `z:"fallback"`
 }
 
 func (Conf) ConfKey() string {
@@ -26,9 +26,15 @@ func (Conf) DisableWrite() bool {
 }
 
 var conf = &Conf{
-	Key:          "sk-sb123",
+	Key:          "nmtx",
 	Balancer:     zpool.StrategyRandom,
 	TestInterval: 60000,
+	Fallback: map[string]string{
+		"claude-3.7-sonnet": "o4-mini",
+		"o4-mini":           "gpt-4.1",
+		"o3":                "gpt-4.1",
+		"gpt-4.1":           "deepseek-v3",
+	},
 }
 
 const providerFile = "./provider.json"
@@ -39,19 +45,6 @@ func New() (p *Module) {
 	return &Module{
 		ModuleLifeCycle: service.ModuleLifeCycle{
 			OnLoad: func(di zdi.Invoker) (any, error) {
-				if !zfile.FileExist(providerFile) {
-					zfile.WriteFile(providerFile, []byte(`{ 
-    "Openai": {
-        "base": "https://api.openai.com/v1",
-        "models": {"4o-mini": "gpt-4o-mini"},
-        "key": "sk-1,sk-2",
-        "cooldown": 6000,
-        "weight": 1,
-        "max": 10
-    }
-}`))
-				}
-
 				return nil, nil
 			},
 			OnStart: func(di zdi.Invoker) error {
