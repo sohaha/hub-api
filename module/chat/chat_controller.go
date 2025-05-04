@@ -10,7 +10,6 @@ import (
 	"github.com/sohaha/zlsgo/zjson"
 	"github.com/sohaha/zlsgo/zlog"
 	"github.com/sohaha/zlsgo/znet"
-	"github.com/sohaha/zlsgo/zpool"
 	"github.com/sohaha/zlsgo/zstring"
 	"github.com/sohaha/zlsgo/zutil"
 )
@@ -38,7 +37,7 @@ func (h *Index) chat(c *znet.Context, data []byte) (err error) {
 		nodes        = h.pool
 		reserveNodes = h.reservePool
 		ctx          = c.Request.Context()
-		pools        = map[string]*zpool.Balancer[openai.Openai]{"nodes": nodes, "reserveNodes": reserveNodes}
+		pools        = []string{"nodes", "reserveNodes"}
 		nodeName     = "unknown"
 		stream       = zjson.GetBytes(data, "stream").Bool()
 		model        = zjson.GetBytes(data, "model").String()
@@ -54,11 +53,15 @@ func (h *Index) chat(c *znet.Context, data []byte) (err error) {
 	}()
 
 	if model == "" {
-		for k := range pools {
+		for _, k := range pools {
 			if ctx.Err() != nil {
 				continue
 			}
-			err = pools[k].Run(func(node openai.Openai) (normal bool, err error) {
+			pool := nodes
+			if k == "reserveNodes" {
+				pool = reserveNodes
+			}
+			err = pool.Run(func(node openai.Openai) (normal bool, err error) {
 				if ctx.Err() != nil {
 					return true, ctx.Err()
 				}
@@ -78,14 +81,14 @@ func (h *Index) chat(c *znet.Context, data []byte) (err error) {
 			}
 		}
 	} else {
-		for k := range pools {
+		for _, k := range pools {
 			runModel := model
 		nn:
 			for {
-				pool := pools[k]
-				if k != "reserveNodes" {
-					nodesKeys = h.modelMaps[runModel]
-				} else {
+				pool := nodes
+				nodesKeys = h.modelMaps[runModel]
+				if k == "reserveNodes" {
+					pool = reserveNodes
 					nodesKeys = h.reserveModelMaps[runModel]
 				}
 
