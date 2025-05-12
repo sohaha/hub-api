@@ -46,7 +46,7 @@ port = 8181
 # 负载均衡算法: 0:按权重随机,1:最小连接优先,2:循环,3:按权重优先
 algorithm = 0
 # 访问接口使用的 key, 多个使用逗号分隔
-key = 'sk-sb123,sk-sb456'
+key = 'sb123,sk-sb456'
 # 内置定时重试失败节点
 test_interval = 60000
 # 后备模型，如果该模型失败会切换到后备模型
@@ -80,6 +80,7 @@ Content-Type: application/json
     "provider": {
         "name": "provider1",
         "base": "https://api.provider1.com/v1",
+        "key": "sk-xxx",
         "models": [
             "gpt-4o-mini"
         ],
@@ -95,6 +96,7 @@ Content-Type: application/json
 {
     "节点名称": {
         "base": "https://节点域名/v1",
+        "key": "sk-xxx",
         "models": ["gpt-4o-mini"],
         "weight": 10,
         "max": 100,
@@ -111,6 +113,9 @@ Content-Type: application/json
 
 **base**
 接口的 base URL
+
+**key**
+接口的 token，多个使用逗号,分隔
 
 **models**
 支持的模型列表
