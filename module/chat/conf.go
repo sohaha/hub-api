@@ -5,6 +5,7 @@ import (
 
 	"github.com/sohaha/zlsgo/zarray"
 	"github.com/sohaha/zlsgo/zdi"
+	"github.com/sohaha/zlsgo/zfile"
 	"github.com/sohaha/zlsgo/zpool"
 	"github.com/zlsgo/app_core/service"
 )
@@ -45,6 +46,19 @@ func New() (p *Module) {
 	return &Module{
 		ModuleLifeCycle: service.ModuleLifeCycle{
 			OnLoad: func(di zdi.Invoker) (any, error) {
+				if !zfile.FileExist(providerFile) {
+					zfile.WriteFile(providerFile, []byte(`{ 
+    "Openai": {
+        "base": "https://api.openai.com/v1",
+        "models": {"4o-mini": "gpt-4o-mini"},
+        "key": "sk-1,sk-2",
+        "cooldown": 6000,
+        "weight": 1,
+        "max": 10
+    }
+}`))
+				}
+
 				return nil, nil
 			},
 			OnStart: func(di zdi.Invoker) error {
